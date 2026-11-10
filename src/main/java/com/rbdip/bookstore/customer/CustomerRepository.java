@@ -5,10 +5,20 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
+    default Customer getOrCreate(String fullName, String address, String phone) {
+        int separator = fullName.indexOf(' ');
+        if (separator < 0 || separator == fullName.length() - 1) {
+            return getOrCreate(fullName, "", address, phone);
+        }
+        return getOrCreate(fullName.substring(0, separator), fullName.substring(separator + 1), address, phone);
+    }
+
     @Query(value = """
-            INSERT INTO customers (full_name, address, phone) VALUES (:fullName, :address, :phone)
-            ON CONFLICT (full_name, address, phone) DO UPDATE SET full_name = EXCLUDED.full_name
-            RETURNING id, full_name, address, phone
+            INSERT INTO customers (first_name, last_name, address, phone)
+            VALUES (:firstName, :lastName, :address, :phone)
+            ON CONFLICT (first_name, last_name, address, phone)
+            DO UPDATE SET first_name = EXCLUDED.first_name
+            RETURNING id, first_name, last_name, address, phone
             """, nativeQuery = true)
-    Customer getOrCreate(String fullName, String address, String phone);
+    Customer getOrCreate(String firstName, String lastName, String address, String phone);
 }
