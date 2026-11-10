@@ -38,6 +38,42 @@ class PricingCalculatorTest {
         assertThat(total).isEqualTo(new BigDecimal(expected));
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "100, 11, vip, SAVE10, 930.50",
+            "100, 11, wholesale, SAVE20PERCENT, 710.60",
+            "100, 11, regular, SAVE10, 1014.30",
+            "1250, 1, regular, SAVE20PERCENT, 1000.00",
+            "1250.01, 1, regular, SAVE20PERCENT, 980.01",
+            "1010, 1, regular, SAVE10, 1000.00",
+            "1010.01, 1, regular, SAVE10, 980.01",
+            "1000, 1, vip, , 900.00",
+            "100, 1, VIP, save10, 100.00",
+            "100, 1, unknown, UNKNOWN, 100.00",
+            "100, 1, , , 100.00"
+    })
+    void appliesDiscountsInOrder(String price, int quantity, String customerType, String coupon, String expected) {
+        BigDecimal total = calculator.calculateOrderTotal(
+                List.of(new PricingCalculator.LineItem(new BigDecimal(price), quantity)), customerType, coupon);
+        assertThat(total).isEqualTo(new BigDecimal(expected));
+    }
+
+    @Test
+    void appliesBulkDiscountOnlyToTheMatchingLine() {
+        BigDecimal total = calculator.calculateOrderTotal(List.of(
+                new PricingCalculator.LineItem(new BigDecimal("10"), 10),
+                new PricingCalculator.LineItem(new BigDecimal("20"), 11)), "regular", null);
+        assertThat(total).isEqualTo(new BigDecimal("309.00"));
+    }
+
+    @Test
+    void roundsTheTotalInsteadOfIndividualLines() {
+        BigDecimal total = calculator.calculateOrderTotal(List.of(
+                new PricingCalculator.LineItem(new BigDecimal("0.335"), 1),
+                new PricingCalculator.LineItem(new BigDecimal("0.335"), 1)), "regular", null);
+        assertThat(total).isEqualTo(new BigDecimal("0.67"));
+    }
+
     @Test
     void emptyOrderCostsZero() {
         assertThat(calculator.calculateOrderTotal(List.of(), null, null)).isEqualTo(new BigDecimal("0.00"));
