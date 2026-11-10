@@ -37,7 +37,7 @@ public class OrderController {
                 .map(order -> {
                     // N+1: отдельный запрос на позиции для каждого заказа вместо
                     // одного JOIN FETCH / batch-запроса. Цель для ЛР4.
-                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+                    List<OrderItem> items = orderItemRepository.findByOrder_Id(order.getId());
                     return Map.<String, Object>of(
                             "id", order.getId(),
                             "customerFullName", order.getCustomerFullName(),
