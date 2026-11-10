@@ -2,13 +2,14 @@ package com.rbdip.bookstore.order;
 
 import com.rbdip.bookstore.customer.Customer;
 import com.rbdip.bookstore.customer.CustomerRepository;
+import com.rbdip.bookstore.purchase.PurchaseHistory;
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class OrderService {
+public class OrderService implements PurchaseHistory {
 
     private final OrderValidator validator;
     private final OrderRepository orderRepository;
@@ -26,6 +27,12 @@ public class OrderService {
         this.pricingCalculator = pricingCalculator;
         this.notifier = notifier;
         this.customerRepository = customerRepository;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasPurchased(Long productId, String customerName) {
+        return orderItemRepository.hasPurchased(productId, customerName);
     }
 
     @Transactional
